@@ -3,9 +3,9 @@
  * This is a port of the popular X11 window manager dwm to Microsoft Windows.
  * It was originally started by Marc Andre Tanner <mat at brain-dump dot org>
  *
- * Each child of the root window is called a client. Clients are organized 
- * in a global linked client list, the focus history is remembered through 
- * a global stack list. Each client contains a bit array to indicate the 
+ * Each child of the root window is called a client. Clients are organized
+ * in a global linked client list, the focus history is remembered through
+ * a global stack list. Each client contains a bit array to indicate the
  * tags of a client.
  *
  * Keys and tagging rules are organized as arrays and defined in config.h.
@@ -14,7 +14,7 @@
  */
 
 #define WIN32_LEAN_AND_MEAN
-#define _WIN32_WINNT			0x0500
+#define _WIN32_WINNT            0x0500
 
 #include <windows.h>
 #include <winuser.h>
@@ -24,11 +24,11 @@
 #include <stdbool.h>
 #include <time.h>
 
-#define NAME					"dwm-win32" 	/* Used for window name/class */
+#define NAME                    "dwm-win32" /* Used for window name/class */
 
 /* macros */
 #define ISVISIBLE(x)            ((x)->tags & tagset[seltags])
-#define ISFOCUSABLE(x)			(!(x)->isminimized && ISVISIBLE(x) && IsWindowVisible((x)->hwnd))
+#define ISFOCUSABLE(x)          (!(x)->isminimized && ISVISIBLE(x) && IsWindowVisible((x)->hwnd))
 #define LENGTH(x)               (sizeof x / sizeof x[0])
 #define MAX(a, b)               ((a) > (b) ? (a) : (b))
 #define MIN(a, b)               ((a) < (b) ? (a) : (b))
@@ -44,9 +44,9 @@
 #endif
 
 /* enums */
-enum { CurNormal, CurResize, CurMove, CurLast };		/* cursor */
-enum { ColBorder, ColFG, ColBG, ColLast };			/* color */
-enum { ClkTagBar, ClkLtSymbol, ClkStatusText, ClkWinTitle };	/* clicks */
+enum { CurNormal, CurResize, CurMove, CurLast };             /* cursor */
+enum { ColBorder, ColFG, ColBG, ColLast };                   /* color */
+enum { ClkTagBar, ClkLtSymbol, ClkStatusText, ClkWinTitle }; /* clicks */
 
 typedef struct {
 	int x, y, w, h;
@@ -152,7 +152,7 @@ static void setmcount(const Arg *arg);
 static void setnmcolumn(const Arg *arg);
 static void setup(HINSTANCE hInstance);
 static void setupbar(HINSTANCE hInstance);
-static void showclientclassname(const Arg *arg); 
+static void showclientclassname(const Arg *arg);
 static void showhide(Client *c);
 static void spawn(const Arg *arg);
 static void tag(const Arg *arg);
@@ -179,14 +179,14 @@ RegisterShellHookWindowProc RegisterShellHookWindow;
 
 /* XXX: should be in a system header, no? */
 typedef struct {
-    HWND    hwnd;
-    RECT    rc;
+	HWND hwnd;
+	RECT rc;
 } SHELLHOOKINFO, *LPSHELLHOOKINFO;
 
 /* variables */
 static HWND dwmhwnd, barhwnd;
 static char stext[256];
-static int sx, sy, sw, sh; /* X display screen geometry x, y, width, height */ 
+static int sx, sy, sw, sh; /* X display screen geometry x, y, width, height */
 static int by, bh, blw;    /* bar geometry y, height and layout symbol width */
 static int wx, wy, ww, wh; /* window area geometry x, y, width, height, bar excluded */
 static unsigned int seltags, sellt;
@@ -195,7 +195,7 @@ static Client *clients = NULL;
 static Client *sel = NULL;
 static Client *stack = NULL;
 static Layout *lt[] = { NULL, NULL };
-static UINT shellhookid;	/* Window Message id */
+static UINT shellhookid; /* Window Message id */
 
 /* configuration, allows nested code to access above variables */
 #include "config.h"
@@ -205,7 +205,7 @@ struct NumTags { char limitexceeded[sizeof(unsigned int) * 8 < LENGTH(tags) ? -1
 
 /* elements of the window whose color should be set to the values in the array below */
 static int colorwinelements[] = { COLOR_ACTIVEBORDER, COLOR_INACTIVEBORDER };
-static COLORREF colors[2][LENGTH(colorwinelements)] = { 
+static COLORREF colors[2][LENGTH(colorwinelements)] = {
 	{ 0, 0 }, /* used to save the values before dwm started */
 	{ selbordercolor, normbordercolor },
 };
@@ -223,7 +223,7 @@ applyrules(Client *c) {
 		if((!r->title || strstr(getclienttitle(c->hwnd), r->title))
 		&& (!r->class || strstr(getclientclassname(c->hwnd), r->class))) {
 			c->isfloating = r->isfloating;
-			c->tags |= r->tags & TAGMASK ? r->tags & TAGMASK : tagset[seltags]; 
+			c->tags |= r->tags & TAGMASK ? r->tags & TAGMASK : tagset[seltags];
 		}
 	}
 	if(!c->tags)
@@ -282,7 +282,7 @@ buttonpress(unsigned int button, POINTS *point) {
 	else
 		click = ClkWinTitle;
 
-	if (GetKeyState(VK_SHIFT) < 0)
+	if(GetKeyState(VK_SHIFT) < 0)
 		return;
 
 	for(i = 0; i < LENGTH(buttons); i++) {
@@ -299,7 +299,7 @@ cleanup() {
 	int i;
 	Arg a = {.ui = ~0};
 	Layout foo = { "", NULL };
-	
+
 	for(i = 0; i < LENGTH(keys); i++) {
 		UnregisterHotKey(dwmhwnd, i);
 	}
@@ -311,7 +311,7 @@ cleanup() {
 	while(stack)
 		unmanage(stack);
 
-	SetSysColors(LENGTH(colorwinelements), colorwinelements, colors[0]); 
+	SetSysColors(LENGTH(colorwinelements), colorwinelements, colors[0]);
 
 	DestroyWindow(dwmhwnd);
 }
@@ -390,7 +390,7 @@ drawbar(void) {
 		dc.w = ww - x;
 	}
 	drawtext(stext, dc.norm, false);
-	
+
 	if(showclock) {
 		/* Draw Date Time */
 		timer = time(NULL);
@@ -446,7 +446,7 @@ drawtext(const char *text, COLORREF col[ColLast], bool invert) {
 	SetBkMode(dc.hdc, TRANSPARENT);
 	SetTextColor(dc.hdc, col[invert ? ColBG : ColFG]);
 
-	HFONT font = (HFONT)GetStockObject(SYSTEM_FONT); 
+	HFONT font = (HFONT)GetStockObject(SYSTEM_FONT);
 	SelectObject(dc.hdc, font);
 
 	DrawText(dc.hdc, text, -1, &r, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
@@ -482,7 +482,7 @@ setselected(Client *c) {
 void
 focus(Client *c) {
 	setselected(c);
-	if (sel)
+	if(sel)
 		SetForegroundWindow(sel->hwnd);
 }
 
@@ -492,7 +492,7 @@ focusstack(const Arg *arg) {
 
 	if(!sel)
 		return;
-	if (arg->i > 0) {
+	if(arg->i > 0) {
 		for(c = sel->next; c && !ISFOCUSABLE(c); c = c->next);
 		if(!c)
 			for(c = clients; c && !ISFOCUSABLE(c); c = c->next);
@@ -520,7 +520,7 @@ managechildwindows(Client *p) {
 	 * of the enumeration above.
 	 */
 	for(c = clients; c; ) {
-		if (c->parent == p->hwnd) {
+		if(c->parent == p->hwnd) {
 			/* XXX: ismanageable isn't that reliable or some
 			 *      windows change over time which means they
 			 *      were once reported as manageable but not
@@ -528,7 +528,7 @@ managechildwindows(Client *p) {
 			 *      currently visible and if that's the case
 			 *      we keep them in our client list.
 			 */
-			if (!c->isalive && !IsWindowVisible(c->hwnd)) {
+			if(!c->isalive && !IsWindowVisible(c->hwnd)) {
 				t = c->next;
 				unmanage(c);
 				c = t;
@@ -548,7 +548,7 @@ getclient(HWND hwnd) {
 	Client *c;
 
 	for(c = clients; c; c = c->next)
-		if (c->hwnd == hwnd)
+		if(c->hwnd == hwnd)
 			return c;
 	return NULL;
 }
@@ -571,7 +571,7 @@ HWND
 getroot(HWND hwnd){
 	HWND parent, deskwnd = GetDesktopWindow();
 
-	while ((parent = GetWindow(hwnd, GW_OWNER)) != NULL && deskwnd != parent)
+	while((parent = GetWindow(hwnd, GW_OWNER)) != NULL && deskwnd != parent)
 		hwnd = parent;
 
 	return hwnd;
@@ -580,17 +580,17 @@ getroot(HWND hwnd){
 void
 grabkeys(HWND hwnd) {
 	int i;
-	for (i = 0; i < LENGTH(keys); i++) {
+	for(i = 0; i < LENGTH(keys); i++) {
 		RegisterHotKey(hwnd, i, keys[i].mod, keys[i].key);
 	}
 }
 
 bool
 ismanageable(HWND hwnd){
-	if (getclient(hwnd))
+	if(getclient(hwnd))
 		return true;
 
-	HWND parent = GetParent(hwnd);	
+	HWND parent = GetParent(hwnd);
 	HWND owner = GetWindow(hwnd, GW_OWNER);
 	int style = GetWindowLong(hwnd, GWL_STYLE);
 	int exstyle = GetWindowLong(hwnd, GWL_EXSTYLE);
@@ -598,7 +598,7 @@ ismanageable(HWND hwnd){
 	bool istool = exstyle & WS_EX_TOOLWINDOW;
 	bool isapp = exstyle & WS_EX_APPWINDOW;
 
-	if (pok && !getclient(parent))
+	if(pok && !getclient(parent))
 		manage(parent);
 
 	debug("ismanageable: %s\n", getclienttitle(hwnd));
@@ -612,42 +612,42 @@ ismanageable(HWND hwnd){
 	debug("  appwin: %d\n", isapp);
 
 	/* XXX: should we do this? */
-	if (GetWindowTextLength(hwnd) == 0) {
+	if(GetWindowTextLength(hwnd) == 0) {
 		debug("   title: NULL\n");
 		debug("  manage: false\n");
 		return false;
 	}
 
-	if (style & WS_DISABLED) {
+	if(style & WS_DISABLED) {
 		debug("disabled: true\n");
 		debug("  manage: false\n");
 		return false;
 	}
 
 	/*
-	 *	WS_EX_APPWINDOW
-	 *		Forces a top-level window onto the taskbar when 
-	 *		the window is visible.
+	 *  WS_EX_APPWINDOW
+	 *      Forces a top-level window onto the taskbar when
+	 *      the window is visible.
 	 *
-	 *	WS_EX_TOOLWINDOW
-	 *		Creates a tool window; that is, a window intended 
-	 *		to be used as a floating toolbar. A tool window 
-	 *		has a title bar that is shorter than a normal 
-	 *		title bar, and the window title is drawn using 
-	 *		a smaller font. A tool window does not appear in 
-	 *		the taskbar or in the dialog that appears when 
-	 *		the user presses ALT+TAB. If a tool window has 
-	 *		a system menu, its icon is not displayed on the 
-	 *		title bar. However, you can display the system 
-	 *		menu by right-clicking or by typing ALT+SPACE.
+	 *  WS_EX_TOOLWINDOW
+	 *      Creates a tool window; that is, a window intended
+	 *      to be used as a floating toolbar. A tool window
+	 *      has a title bar that is shorter than a normal
+	 *      title bar, and the window title is drawn using
+	 *      a smaller font. A tool window does not appear in
+	 *      the taskbar or in the dialog that appears when
+	 *      the user presses ALT+TAB. If a tool window has
+	 *      a system menu, its icon is not displayed on the
+	 *      title bar. However, you can display the system
+	 *      menu by right-clicking or by typing ALT+SPACE.
 	 */
 
-	if ((parent == 0 && IsWindowVisible(hwnd)) || pok) {
-		if ((!istool && parent == 0) || (istool && pok)) {
+	if((parent == 0 && IsWindowVisible(hwnd)) || pok) {
+		if((!istool && parent == 0) || (istool && pok)) {
 			debug("  manage: true\n");
 			return true;
 		}
-		if (isapp && parent != 0) {
+		if(isapp && parent != 0) {
 		    debug("  manage: true\n");
 			return true;
 		}
@@ -664,11 +664,11 @@ killclient(const Arg *arg) {
 }
 
 Client*
-manage(HWND hwnd) {	
+manage(HWND hwnd) {
 	static Client cz;
 	Client *c = getclient(hwnd);
 
-	if (c)
+	if(c)
 		return c;
 
 	debug(" manage %s\n", getclienttitle(hwnd));
@@ -677,7 +677,7 @@ manage(HWND hwnd) {
 		.cbSize = sizeof(WINDOWINFO),
 	};
 
-	if (!GetWindowInfo(hwnd, &wi))
+	if(!GetWindowInfo(hwnd, &wi))
 		return NULL;
 
 	if(!(c = malloc(sizeof(Client))))
@@ -695,13 +695,13 @@ manage(HWND hwnd) {
 		.showCmd = SW_RESTORE,
 	};
 
-	if (IsWindowVisible(c->hwnd))
+	if(IsWindowVisible(c->hwnd))
 		SetWindowPlacement(hwnd, &wp);
-	
-	/* maybe we could also filter based on 
+
+	/* maybe we could also filter based on
 	 * WS_MINIMIZEBOX and WS_MAXIMIZEBOX
 	 */
-	c->isfloating = (wi.dwStyle & WS_POPUP) || 
+	c->isfloating = (wi.dwStyle & WS_POPUP) ||
 		(!(wi.dwStyle & WS_MINIMIZEBOX) && !(wi.dwStyle & WS_MAXIMIZEBOX));
 
 	debug(" window style: %d\n", wi.dwStyle);
@@ -711,11 +711,11 @@ manage(HWND hwnd) {
 	debug("   isfloating: %d\n", c->isfloating);
 
 	applyrules(c);
-	
-	if (!c->isfloating)
+
+	if(!c->isfloating)
 		setborder(c, false);
 
-	if (c->isfloating && IsWindowVisible(hwnd)) {
+	if(c->isfloating && IsWindowVisible(hwnd)) {
 		debug(" new floating window: x: %d y: %d w: %d h: %d\n", wi.rcWindow.left, wi.rcWindow.top, wi.rcWindow.right - wi.rcWindow.left, wi.rcWindow.bottom - wi.rcWindow.top);
 		resize(c, wi.rcWindow.left, wi.rcWindow.top, wi.rcWindow.right - wi.rcWindow.left, wi.rcWindow.bottom - wi.rcWindow.top);
 	}
@@ -752,7 +752,7 @@ movetonext(const Arg *arg) {
 
 	sel->next = n->next;
 	n->next = sel;
-	
+
 	if(!p) {
 		/* sel is the first one */
 		clients = n;
@@ -771,7 +771,7 @@ movetoprev(const Arg *arg) {
 		return;
 
 	if(sel == pp) {
-		/* 
+		/*
 		 * sel is the first one;
 		 * there're at least 2 windows
 		 */
@@ -852,7 +852,7 @@ restack(void) {
 
 LRESULT CALLBACK barhandler(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
-	switch (msg) {
+	switch(msg) {
 		case WM_CREATE:
 			updatebar();
 			break;
@@ -871,7 +871,7 @@ LRESULT CALLBACK barhandler(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		case WM_TIMER:
 			drawbar();
 		default:
-			return DefWindowProc(hwnd, msg, wParam, lParam); 
+			return DefWindowProc(hwnd, msg, wParam, lParam);
 	}
 
 	return 0;
@@ -879,7 +879,7 @@ LRESULT CALLBACK barhandler(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
-	switch (msg) {
+	switch(msg) {
 		case WM_CREATE:
 			break;
 		case WM_CLOSE:
@@ -889,30 +889,30 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			PostQuitMessage(0);
 			break;
 		case WM_HOTKEY:
-			if (wParam > 0 && wParam < LENGTH(keys)) {
+			if(wParam > 0 && wParam < LENGTH(keys)) {
 				keys[wParam].func(&(keys[wParam ].arg));
 			}
 			break;
 		default:
-			if (msg == shellhookid) { /* Handle the shell hook message */
+			if(msg == shellhookid) { /* Handle the shell hook message */
 				Client *c = getclient((HWND)lParam);
-				switch (wParam & 0x7fff) {
+				switch(wParam & 0x7fff) {
 					/* The first two events are also trigger if windows
 					 * are being hidden or shown because of a tag
 					 * switch, therefore we ignore them in this case.
 					 */
 					case HSHELL_WINDOWCREATED:
 						debug("window created: %s\n", getclienttitle((HWND)lParam));
-						if (!c && ismanageable((HWND)lParam)) {
+						if(!c && ismanageable((HWND)lParam)) {
 							c = manage((HWND)lParam);
 							managechildwindows(c);
 							arrange();
 						}
 						break;
 					case HSHELL_WINDOWDESTROYED:
-						if (c) {
+						if(c) {
 							debug(" window %s: %s\n", c->ignore ? "hidden" : "destroyed", getclienttitle(c->hwnd));
-							if (!c->ignore)
+							if(!c->ignore)
 								unmanage(c);
 							else
 								c->ignore = false;
@@ -922,30 +922,30 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 						break;
 					case HSHELL_WINDOWACTIVATED:
 						debug(" window activated: %s || %d\n", c ? getclienttitle(c->hwnd) : "unknown", (HWND)lParam);
-						if (c) {
+						if(c) {
 							Client *t = sel;
 							managechildwindows(c);
 							setselected(c);
-							/* check if the previously selected 
+							/* check if the previously selected
 							 * window got minimized
 							 */
-							if (t && (t->isminimized = IsIconic(t->hwnd))) {
+							if(t && (t->isminimized = IsIconic(t->hwnd))) {
 								debug(" active window got minimized: %s\n", getclienttitle(t->hwnd));
 								arrange();
 							}
 							/* the newly focused window was minimized */
-							if (sel->isminimized) {
+							if(sel->isminimized) {
 								debug(" newly active window was minimized: %s\n", getclienttitle(sel->hwnd));
-								sel->isminimized = false;								
+								sel->isminimized = false;
 								zoom(NULL);
 							}
 						} else  {
-							/* Some window don't seem to generate 
-							 * HSHELL_WINDOWCREATED messages therefore 
+							/* Some window don't seem to generate
+							 * HSHELL_WINDOWCREATED messages therefore
 						 	 * we check here whether we should manage
 						 	 * the window or not.
 						 	 */
-							if (ismanageable((HWND)lParam)) {
+							if(ismanageable((HWND)lParam)) {
 								c = manage((HWND)lParam);
 								managechildwindows(c);
 								setselected(c);
@@ -955,18 +955,18 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 						break;
 				}
 			} else
-				return DefWindowProc(hwnd, msg, wParam, lParam); 
+				return DefWindowProc(hwnd, msg, wParam, lParam);
 	}
 
 	return 0;
 }
 
-BOOL CALLBACK 
+BOOL CALLBACK
 scan(HWND hwnd, LPARAM lParam) {
 	Client *c = getclient(hwnd);
-	if (c)
+	if(c)
 		c->isalive = true;
-	else if (ismanageable(hwnd))
+	else if(ismanageable(hwnd))
 		manage(hwnd);
 	return TRUE;
 }
@@ -997,10 +997,10 @@ drawborder(Client *c, COLORREF color) {
 
 void
 setborder(Client *c, bool border) {
-	if (border) {
+	if(border) {
 		SetWindowLong(c->hwnd, GWL_STYLE, (GetWindowLong(c->hwnd, GWL_STYLE) | (WS_CAPTION | WS_SIZEBOX)));
-	} else {		
-		/* XXX: ideally i would like to use the standard window border facilities and just modify the 
+	} else {
+		/* XXX: ideally i would like to use the standard window border facilities and just modify the
 		 *      color with SetSysColor but this only seems to work if we leave WS_SIZEBOX enabled which
 		 *      is not optimal.
 		 */
@@ -1049,7 +1049,7 @@ setmcount(const Arg *arg) {
 	if(!arg || !lt[sellt]->arrange)
 		return;
 	i = mcount + arg->i;
-	if (i < 1)
+	if(i < 1)
 		return;
 	mcount = i;
 	arrange();
@@ -1062,7 +1062,7 @@ setnmcolumn(const Arg *arg) {
 	if(!arg || !lt[sellt]->arrange)
 		return;
 	i = nmcolumn + arg->i;
-	if (i < 1)
+	if(i < 1)
 		return;
 	nmcolumn = i;
 	arrange();
@@ -1086,11 +1086,11 @@ setup(HINSTANCE hInstance) {
 	dc.sel[ColFG] = selfgcolor;
 
 	/* save colors so we can restore them in cleanup */
-	for (i = 0; i < LENGTH(colorwinelements); i++)
+	for(i = 0; i < LENGTH(colorwinelements); i++)
 		colors[0][i] = GetSysColor(colorwinelements[i]);
-	
-	SetSysColors(LENGTH(colorwinelements), colorwinelements, colors[1]); 
-	
+
+	SetSysColors(LENGTH(colorwinelements), colorwinelements, colors[1]);
+
 	//SystemParametersInfo(SPI_SETBORDER, 1 /* width */, 0, 0);
 
 	updategeom();
@@ -1110,12 +1110,12 @@ setup(HINSTANCE hInstance) {
 	winClass.lpszMenuName = NULL;
 	winClass.lpszClassName = NAME;
 
-	if (!RegisterClassEx(&winClass))
+	if(!RegisterClassEx(&winClass))
 		die("Error registering window class");
 
 	dwmhwnd = CreateWindowEx(0, NAME, NAME, 0, 0, 0, 0, 0, HWND_MESSAGE, NULL, hInstance, NULL);
 
-	if (!dwmhwnd)
+	if(!dwmhwnd)
 		die("Error creating window");
 
 	grabkeys(dwmhwnd);
@@ -1125,10 +1125,10 @@ setup(HINSTANCE hInstance) {
 	setupbar(hInstance);
 
 	arrange();
-	
+
 	/* Get function pointer for RegisterShellHookWindow */
 	RegisterShellHookWindow = (RegisterShellHookWindowProc)GetProcAddress(GetModuleHandle("USER32.DLL"), "RegisterShellHookWindow");
-	if (!RegisterShellHookWindow)
+	if(!RegisterShellHookWindow)
 		die("Could not find RegisterShellHookWindow");
 	RegisterShellHookWindow(dwmhwnd);
 	/* Grab a dynamic id for the SHELLHOOK message to be used later */
@@ -1154,15 +1154,15 @@ setupbar(HINSTANCE hInstance) {
 	winClass.lpszMenuName = NULL;
 	winClass.lpszClassName = "dwm-bar";
 
-	if (!RegisterClass(&winClass))
+	if(!RegisterClass(&winClass))
 		die("Error registering window class");
 
 	barhwnd = CreateWindowEx(
 		WS_EX_TOOLWINDOW,
 		"dwm-bar",
 		NULL, /* window title */
-		WS_POPUP | WS_CLIPCHILDREN | WS_CLIPSIBLINGS, 
-		0, 0, 0, 0, 
+		WS_POPUP | WS_CLIPCHILDREN | WS_CLIPSIBLINGS,
+		0, 0, 0, 0,
 		NULL, /* parent window */
 		NULL, /* menu */
 		hInstance,
@@ -1171,7 +1171,7 @@ setupbar(HINSTANCE hInstance) {
 
 	/* calculate width of the largest layout symbol */
 	dc.hdc = GetWindowDC(barhwnd);
-	HFONT font = (HFONT)GetStockObject(SYSTEM_FONT); 
+	HFONT font = (HFONT)GetStockObject(SYSTEM_FONT);
 	SelectObject(dc.hdc, font);
 
 	for(blw = i = 0; LENGTH(layouts) > 1 && i < LENGTH(layouts); i++) {
@@ -1182,9 +1182,9 @@ setupbar(HINSTANCE hInstance) {
 	ReleaseDC(barhwnd, dc.hdc);
 
 	PostMessage(barhwnd, WM_PAINT, 0, 0);
-	
+
 	SetTimer(barhwnd, 1, clock_intval, NULL);
-	
+
 	updatebar();
 }
 
@@ -1198,14 +1198,14 @@ showhide(Client *c) {
 	if(!c)
 		return;
 	/* XXX: is the order of showing / hidding important? */
-	if (!ISVISIBLE(c)) {
-		if (IsWindowVisible(c->hwnd)) {
+	if(!ISVISIBLE(c)) {
+		if(IsWindowVisible(c->hwnd)) {
 			c->ignore = true;
 			c->wasvisible = true;
 			setvisibility(c->hwnd, false);
 		}
 	} else {
-		if (c->wasvisible) {
+		if(c->wasvisible) {
 			setvisibility(c->hwnd, true);
 		}
 	}
@@ -1224,9 +1224,9 @@ tag(const Arg *arg) {
 	if(sel && arg->ui & TAGMASK) {
 		sel->tags = arg->ui & TAGMASK;
 		debug("window tagged: %d %s\n", sel->hwnd, getclienttitle(sel->hwnd));
-		for (c = managechildwindows(sel); c; c = nextchild(sel, c->next)) {
+		for(c = managechildwindows(sel); c; c = nextchild(sel, c->next)) {
 			debug(" child window which is %s tagged: %s\n", c->isfloating ? "floating" : "normal", getclienttitle(c->hwnd));
-			if (c->isfloating)
+			if(c->isfloating)
 				c->tags = arg->ui & TAGMASK;
 		}
 		debug("window tagged finished\n");
@@ -1238,9 +1238,9 @@ int
 textnw(const char *text, unsigned int len) {
 	SIZE size;
 	GetTextExtentPoint(dc.hdc, text, len, &size);
-	if (size.cx > 0)
+	if(size.cx > 0)
 		size.cx += textmargin;
-	return size.cx;  
+	return size.cx;
 }
 
 
@@ -1288,7 +1288,7 @@ tile(void) {
 		y = wy;
 		h = wh / nmr[i];
 		if(h < bh)
-			h = wh; 
+			h = wh;
 
 		for(j = 0; j < nmr[i]; c = nexttiled(c->next), j++) {
 			resize(c, x, y, w - 2 * c->bw, /* remainder */ ((j + 1 == nmr[i])
@@ -1346,7 +1346,7 @@ htile(void) {
 		x = wx;
 		w = ww / nmr[i];
 		if(w < bh) /* I don't undersand this */
-			w = ww; 
+			w = ww;
 
 		for(j = 0; j < nmr[i]; c = nexttiled(c->next), j++) {
 			resize(c, x, y, /* remainder */ ((j + 1 == nmr[i])
@@ -1369,7 +1369,7 @@ togglebar(const Arg *arg) {
 
 void
 toggleborder(const Arg *arg) {
-	if (!sel)
+	if(!sel)
 		return;
 	setborder(sel, !sel->border);
 }
@@ -1377,24 +1377,24 @@ toggleborder(const Arg *arg) {
 void
 toggleexplorer(const Arg *arg) {
 	HWND hwnd = FindWindow("Progman", "Program Manager");
-	if (hwnd)
+	if(hwnd)
 		setvisibility(hwnd, !IsWindowVisible(hwnd));
 
 	hwnd = FindWindow("Shell_TrayWnd", NULL);
-	if (hwnd)
+	if(hwnd)
 		setvisibility(hwnd, !IsWindowVisible(hwnd));
 
-	
+
 	updategeom();
 	updatebar();
-	arrange();		
+	arrange();
 }
 
 void
 toggleclock(const Arg *arg) {
 	showclock = !showclock;
 	updatebar();
-	arrange();		
+	arrange();
 }
 
 void
@@ -1412,9 +1412,9 @@ void
 toggletag(const Arg *arg) {
 	unsigned int mask;
 
-	if (!sel)
+	if(!sel)
 		return;
-	
+
 	mask = sel->tags ^ (arg->ui & TAGMASK);
 	if(mask) {
 		sel->tags = mask;
@@ -1435,9 +1435,9 @@ toggleview(const Arg *arg) {
 void
 unmanage(Client *c) {
 	debug(" unmanage %s\n", getclienttitle(c->hwnd));
-	if (c->wasvisible)
+	if(c->wasvisible)
 		setvisibility(c->hwnd, true);
-	if (!c->isfloating)
+	if(!c->isfloating)
 		setborder(c, true);
 	detach(c);
 	detachstack(c);
@@ -1459,7 +1459,7 @@ updategeom(void) {
 	/* check if the windows taskbar is visible and adjust
 	 * the workspace accordingly.
 	 */
-	if (hwnd && IsWindowVisible(hwnd)) {	
+	if(hwnd && IsWindowVisible(hwnd)) {
 		SystemParametersInfo(SPI_GETWORKAREA, 0, &wa, 0);
 		sx = wa.left;
 		sy = wa.top;
@@ -1509,12 +1509,12 @@ zoom(const Arg *arg) {
 	arrange();
 }
 
-int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd) {	
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd) {
 	MSG msg;
 
 	setup(hInstance);
 
-	while (GetMessage(&msg, NULL, 0, 0) > 0) {
+	while(GetMessage(&msg, NULL, 0, 0) > 0) {
 		TranslateMessage(&msg);
 		DispatchMessage(&msg);
 	}

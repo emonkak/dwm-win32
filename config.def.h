@@ -1,5 +1,9 @@
 /* See LICENSE file for copyright and license details. */
 
+/* font */
+static const char font[]    = "Consolas";
+static const int fontheight = 14;
+
 /* appearance, colors are specified in the form 0x00bbggrr or with the RGB(r, g, b) macro */
 #define normbordercolor 0x00cccccc
 #define normbgcolor     0x00cccccc

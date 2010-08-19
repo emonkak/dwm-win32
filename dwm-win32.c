@@ -53,6 +53,7 @@ typedef struct {
 	unsigned long norm[ColLast];
 	unsigned long sel[ColLast];
 	HDC hdc;
+	HFONT font;
 } DC; /* draw context */
 
 DC dc;
@@ -313,6 +314,8 @@ cleanup() {
 
 	SetSysColors(LENGTH(colorwinelements), colorwinelements, colors[0]);
 
+	DeleteObject(dc.font);
+
 	DestroyWindow(dwmhwnd);
 }
 
@@ -446,8 +449,7 @@ drawtext(const char *text, COLORREF col[ColLast], bool invert) {
 	SetBkMode(dc.hdc, TRANSPARENT);
 	SetTextColor(dc.hdc, col[invert ? ColBG : ColFG]);
 
-	HFONT font = (HFONT)GetStockObject(SYSTEM_FONT);
-	SelectObject(dc.hdc, font);
+	SelectObject(dc.hdc, dc.font);
 
 	DrawText(dc.hdc, text, -1, &r, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
 }
@@ -1171,8 +1173,14 @@ setupbar(HINSTANCE hInstance) {
 
 	/* calculate width of the largest layout symbol */
 	dc.hdc = GetWindowDC(barhwnd);
-	HFONT font = (HFONT)GetStockObject(SYSTEM_FONT);
-	SelectObject(dc.hdc, font);
+	dc.font = CreateFont(fontheight, 0, 0, 0, 0, FALSE, FALSE, FALSE,
+	                     DEFAULT_CHARSET,
+	                     OUT_DEFAULT_PRECIS,
+	                     CLIP_DEFAULT_PRECIS,
+	                     DEFAULT_QUALITY,
+	                     DEFAULT_PITCH | FF_DONTCARE,
+	                     font);
+	SelectObject(dc.hdc, dc.font);
 
 	for(blw = i = 0; LENGTH(layouts) > 1 && i < LENGTH(layouts); i++) {
  		w = TEXTW(layouts[i].symbol);

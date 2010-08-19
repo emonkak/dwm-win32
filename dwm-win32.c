@@ -53,6 +53,8 @@ typedef struct {
 	unsigned long norm[ColLast];
 	unsigned long sel[ColLast];
 	HDC hdc;
+	HDC buffer;
+	HBITMAP bitmap;
 	HFONT font;
 } DC; /* draw context */
 
@@ -314,6 +316,8 @@ cleanup() {
 
 	SetSysColors(LENGTH(colorwinelements), colorwinelements, colors[0]);
 
+	DeleteDC(dc.buffer);
+	DeleteObject(dc.bitmap);
 	DeleteObject(dc.font);
 
 	DestroyWindow(dwmhwnd);
@@ -414,6 +418,8 @@ drawbar(void) {
 			drawtext(NULL, dc.norm, false);
 	}
 
+	BitBlt(dc.hdc, 0, 0, ww, bh, dc.buffer, 0, 0, SRCCOPY);
+
 	ReleaseDC(barhwnd, dc.hdc);
 }
 
@@ -423,12 +429,12 @@ drawsquare(bool filled, bool empty, bool invert, COLORREF col[ColLast]) {
 	RECT r = { .left = dc.x + 1, .top = dc.y + 1, .right = dc.x + size, .bottom = dc.y + size };
 
 	HBRUSH brush = CreateSolidBrush(col[invert ? ColBG : ColFG]);
-	SelectObject(dc.hdc, brush);
+	SelectObject(dc.buffer, brush);
 
 	if(filled) {
-		FillRect(dc.hdc, &r, brush);
+		FillRect(dc.buffer, &r, brush);
 	} else if(empty) {
-		FillRect(dc.hdc, &r, brush);
+		FillRect(dc.buffer, &r, brush);
 	}
 	DeleteObject(brush);
 }
@@ -439,24 +445,24 @@ drawtext(const char *text, COLORREF col[ColLast], bool invert) {
 
 	HPEN pen = CreatePen(PS_SOLID, borderpx, selbordercolor);
 	HBRUSH brush = CreateSolidBrush(col[invert ? ColFG : ColBG]);
-	SelectObject(dc.hdc, pen);
-	SelectObject(dc.hdc, brush);
-	FillRect(dc.hdc, &r, brush);
+	SelectObject(dc.buffer, pen);
+	SelectObject(dc.buffer, brush);
+	FillRect(dc.buffer, &r, brush);
 
 	DeleteObject(brush);
 	DeleteObject(pen);
 
-	SetBkMode(dc.hdc, TRANSPARENT);
-	SetTextColor(dc.hdc, col[invert ? ColBG : ColFG]);
+	SetBkMode(dc.buffer, TRANSPARENT);
+	SetTextColor(dc.buffer, col[invert ? ColBG : ColFG]);
 
-	SelectObject(dc.hdc, dc.font);
+	SelectObject(dc.buffer, dc.font);
 
 	r.left += dc.h / 2;
 	r.top += 1;
 	r.right -= dc.h / 2;
 	r.bottom -= 1;
 
-	DrawText(dc.hdc, text, -1, &r, DT_NOPREFIX | DT_SINGLELINE | DT_WORD_ELLIPSIS);
+	DrawText(dc.buffer, text, -1, &r, DT_NOPREFIX | DT_SINGLELINE | DT_WORD_ELLIPSIS);
 }
 
 void
@@ -1178,6 +1184,8 @@ setupbar(HINSTANCE hInstance) {
 
 	/* calculate width of the largest layout symbol */
 	dc.hdc = GetWindowDC(barhwnd);
+	dc.bitmap = CreateCompatibleBitmap(dc.hdc, sw, bh);
+	dc.buffer = CreateCompatibleDC(dc.hdc);
 	dc.font = CreateFont(fontheight, 0, 0, 0, 0, FALSE, FALSE, FALSE,
 	                     DEFAULT_CHARSET,
 	                     OUT_DEFAULT_PRECIS,
@@ -1185,6 +1193,7 @@ setupbar(HINSTANCE hInstance) {
 	                     DEFAULT_QUALITY,
 	                     DEFAULT_PITCH | FF_DONTCARE,
 	                     font);
+	SelectObject(dc.buffer, dc.bitmap);
 
 	for(blw = i = 0; LENGTH(layouts) > 1 && i < LENGTH(layouts); i++) {
  		w = TEXTW(layouts[i].symbol);

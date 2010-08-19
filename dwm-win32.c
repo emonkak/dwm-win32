@@ -902,7 +902,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			PostQuitMessage(0);
 			break;
 		case WM_HOTKEY:
-			if(wParam > 0 && wParam < LENGTH(keys)) {
+			if(wParam >= 0 && wParam < LENGTH(keys)) {
 				keys[wParam].func(&(keys[wParam ].arg));
 			}
 			break;

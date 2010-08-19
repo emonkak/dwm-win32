@@ -113,4 +113,4 @@ static Button buttons[] = {
 };
 
 static char clockfmt[] = "%Y/%m/%d(%a) %H:%M";
-static int clock_intval = 15000;
+static int clock_intval = 1000;

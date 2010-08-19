@@ -731,6 +731,7 @@ manage(HWND hwnd) {
 	if(c->isfloating && IsWindowVisible(hwnd)) {
 		debug(" new floating window: x: %d y: %d w: %d h: %d\n", wi.rcWindow.left, wi.rcWindow.top, wi.rcWindow.right - wi.rcWindow.left, wi.rcWindow.bottom - wi.rcWindow.top);
 		resize(c, wi.rcWindow.left, wi.rcWindow.top, wi.rcWindow.right - wi.rcWindow.left, wi.rcWindow.bottom - wi.rcWindow.top);
+		SetWindowPos(c->hwnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
 	}
 
 	attach(c);
@@ -1425,8 +1426,11 @@ togglefloating(const Arg *arg) {
 		return;
 	sel->isfloating = !sel->isfloating || sel->isfixed;
 	setborder(sel, sel->isfloating);
-	if(sel->isfloating)
+	if(sel->isfloating) {
 		resize(sel, sel->x, sel->y, sel->w, sel->h);
+		SetWindowPos(sel->hwnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+	} else
+		SetWindowPos(sel->hwnd, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
 	arrange();
 }
 
@@ -1459,7 +1463,9 @@ unmanage(Client *c) {
 	debug(" unmanage %s\n", getclienttitle(c->hwnd));
 	if(c->wasvisible)
 		setvisibility(c->hwnd, true);
-	if(!c->isfloating)
+	if(c->isfloating)
+		SetWindowPos(c->hwnd, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+	else
 		setborder(c, true);
 	detach(c);
 	detachstack(c);

@@ -13,7 +13,6 @@ static const int fontheight = 14;
 #define selfgcolor      0x00ffffff
 
 static const unsigned int borderpx    = 2;    /* border pixel of windows */
-static const unsigned int textmargin  = 5;    /* margin for the text displayed on the bar */
 static bool showbar                   = true; /* false means no bar */
 static bool topbar                    = true; /* false means bottom bar */
 static bool showclock                 = true; /* false means no clock */

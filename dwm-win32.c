@@ -451,7 +451,12 @@ drawtext(const char *text, COLORREF col[ColLast], bool invert) {
 
 	SelectObject(dc.hdc, dc.font);
 
-	DrawText(dc.hdc, text, -1, &r, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+	r.left += dc.h / 2;
+	r.top += 1;
+	r.right -= dc.h / 2;
+	r.bottom -= 1;
+
+	DrawText(dc.hdc, text, -1, &r, DT_NOPREFIX | DT_SINGLELINE | DT_WORD_ELLIPSIS);
 }
 
 void
@@ -1180,7 +1185,6 @@ setupbar(HINSTANCE hInstance) {
 	                     DEFAULT_QUALITY,
 	                     DEFAULT_PITCH | FF_DONTCARE,
 	                     font);
-	SelectObject(dc.hdc, dc.font);
 
 	for(blw = i = 0; LENGTH(layouts) > 1 && i < LENGTH(layouts); i++) {
  		w = TEXTW(layouts[i].symbol);
@@ -1245,9 +1249,10 @@ tag(const Arg *arg) {
 int
 textnw(const char *text, unsigned int len) {
 	SIZE size;
+	SelectObject(dc.hdc, dc.font);
 	GetTextExtentPoint(dc.hdc, text, len, &size);
 	if(size.cx > 0)
-		size.cx += textmargin;
+		size.cx += bh;
 	return size.cx;
 }
 
@@ -1480,7 +1485,7 @@ updategeom(void) {
 		sh = GetSystemMetrics(SM_CYVIRTUALSCREEN);
 	}
 
-	bh = 20; /* XXX: fixed value */
+	bh = abs(fontheight) + 2;
 
 	/* window area geometry */
 	wx = sx;

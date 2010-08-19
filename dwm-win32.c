@@ -365,9 +365,6 @@ drawbar(void) {
 	unsigned int i, occ = 0, urg = 0;
 	unsigned long *col;
 	Client *c;
-	time_t timer;
-	struct tm *date;
-	char timestr[256];
 
 	for(c = clients; c; c = c->next) {
 		occ |= c->tags;
@@ -397,16 +394,6 @@ drawbar(void) {
 		dc.w = ww - x;
 	}
 	drawtext(stext, dc.norm, false);
-
-	if(showclock) {
-		/* Draw Date Time */
-		timer = time(NULL);
-		date = localtime(&timer);
-		strftime(timestr, 255, clockfmt, date);
-		dc.w = TEXTW(timestr);
-		dc.x = ww - dc.w;
-		drawtext(timestr, dc.norm, false);
-	}
 
 	if((dc.w = dc.x - x) > bh) {
 		dc.x = x;
@@ -882,8 +869,17 @@ LRESULT CALLBACK barhandler(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		case WM_MBUTTONDOWN:
 			buttonpress(msg, &MAKEPOINTS(lParam));
 			break;
-		case WM_TIMER:
+		case WM_TIMER: {
+			if(showclock) {
+				time_t timer;
+				struct tm *date;
+				time(&timer);
+				date = localtime(&timer);
+				strftime(stext, 255, clockfmt, date);
+			}
 			drawbar();
+			break;
+		}
 		default:
 			return DefWindowProc(hwnd, msg, wParam, lParam);
 	}
@@ -1203,6 +1199,7 @@ setupbar(HINSTANCE hInstance) {
 
 	ReleaseDC(barhwnd, dc.hdc);
 
+	PostMessage(barhwnd, WM_TIMER, 0, 0);
 	PostMessage(barhwnd, WM_PAINT, 0, 0);
 
 	SetTimer(barhwnd, 1, clock_intval, NULL);

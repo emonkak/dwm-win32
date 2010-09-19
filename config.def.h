@@ -1,5 +1,12 @@
 /* See LICENSE file for copyright and license details. */
 
+/* status functions */
+void statussetup();
+void statuscleanup();
+int getcpu();
+int getmemory();
+size_t gettime(char*, size_t, const char*);
+
 /* font */
 static const char font[]    = "Consolas";
 static const int fontheight = 14;
@@ -15,7 +22,6 @@ static const int fontheight = 14;
 static const unsigned int borderpx    = 2;    /* border pixel of windows */
 static bool showbar                   = true; /* false means no bar */
 static bool topbar                    = true; /* false means bottom bar */
-static bool showclock                 = true; /* false means no clock */
 
 /* tagging */
 static const char tags[][MAXTAGLEN] = { "1", "2", "3", "4", "5", "6", "7", "8", "9" };
@@ -81,7 +87,6 @@ static Key keys[] = {
 	{ MODKEY,             'E',       toggleexplorer,      {0} },
 	{ MODKEY,             '0',       view,                {.ui = ~0 } },
 	{ MODKEY|MOD_SHIFT,   '0',       tag,                 {.ui = ~0 } },
-	{ MODKEY,             'C',       toggleclock,         {0} },
 	TAGKEYS(              '1',                            0)
 	TAGKEYS(              '2',                            1)
 	TAGKEYS(              '3',                            2)
@@ -112,5 +117,5 @@ static Button buttons[] = {
 	{ ClkTagBar,     WM_RBUTTONDOWN,    0,             toggleview,     {0} },
 };
 
-static char clockfmt[] = "%Y/%m/%d(%a) %H:%M";
-static int clock_intval = 1000;
+static char status[] = "%Y/%m/%d(%a) %H:%M";
+static int interval  = 1000;

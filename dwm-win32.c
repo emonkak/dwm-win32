@@ -22,7 +22,6 @@
 #include <stdio.h>
 #include <shellapi.h>
 #include <stdbool.h>
-#include <time.h>
 
 #define NAME                    "dwm-win32" /* Used for window name/class */
 
@@ -164,7 +163,6 @@ static void tile(void);
 static void htile(void);
 static void togglebar(const Arg *arg);
 static void toggleborder(const Arg *arg);
-static void toggleclock(const Arg *arg);
 static void toggleexplorer(const Arg *arg);
 static void togglefloating(const Arg *arg);
 static void toggletag(const Arg *arg);
@@ -319,6 +317,8 @@ cleanup() {
 	DeleteDC(dc.buffer);
 	DeleteObject(dc.bitmap);
 	DeleteObject(dc.font);
+
+	statuscleanup();
 
 	DestroyWindow(dwmhwnd);
 }
@@ -712,8 +712,10 @@ manage(HWND hwnd) {
 
 	applyrules(c);
 
-	if(!c->isfloating)
+	if(!c->isfloating) {
 		setborder(c, false);
+		SetWindowPos(c->hwnd, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+	}
 
 	if(c->isfloating && IsWindowVisible(hwnd)) {
 		debug(" new floating window: x: %d y: %d w: %d h: %d\n", wi.rcWindow.left, wi.rcWindow.top, wi.rcWindow.right - wi.rcWindow.left, wi.rcWindow.bottom - wi.rcWindow.top);
@@ -870,13 +872,9 @@ LRESULT CALLBACK barhandler(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			buttonpress(msg, &MAKEPOINTS(lParam));
 			break;
 		case WM_TIMER: {
-			if(showclock) {
-				time_t timer;
-				struct tm *date;
-				time(&timer);
-				date = localtime(&timer);
-				strftime(stext, 255, clockfmt, date);
-			}
+			char clock[256];
+			gettime(clock, 255, status);
+			snprintf(stext, 255, "cpu:%3d%% | mem:%3d%% | %s", getcpu(), getmemory(), clock);
 			drawbar();
 			break;
 		}
@@ -1132,6 +1130,8 @@ setup(HINSTANCE hInstance) {
 
 	EnumWindows(scan, 0);
 
+	statussetup();
+
 	setupbar(hInstance);
 
 	arrange();
@@ -1202,7 +1202,7 @@ setupbar(HINSTANCE hInstance) {
 	PostMessage(barhwnd, WM_TIMER, 0, 0);
 	PostMessage(barhwnd, WM_PAINT, 0, 0);
 
-	SetTimer(barhwnd, 1, clock_intval, NULL);
+	SetTimer(barhwnd, 1, interval, NULL);
 
 	updatebar();
 }
@@ -1406,13 +1406,6 @@ toggleexplorer(const Arg *arg) {
 
 
 	updategeom();
-	updatebar();
-	arrange();
-}
-
-void
-toggleclock(const Arg *arg) {
-	showclock = !showclock;
 	updatebar();
 	arrange();
 }

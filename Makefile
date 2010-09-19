@@ -3,7 +3,7 @@
 
 include config.mk
 
-SRC = dwm-win32.c
+SRC = dwm-win32.c status.c
 OBJ = ${SRC:.c=.o}
 
 all: options dwm-win32
